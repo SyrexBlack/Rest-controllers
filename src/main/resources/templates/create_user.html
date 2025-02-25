@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Add New User</title>
+    <!-- Подключение Bootstrap -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        /* Верхняя панель */
+        .topbar {
+            background-color: #343a40;
+            color: white;
+            padding: 10px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .topbar a {
+            color: white;
+            text-decoration: none;
+            font-weight: normal;
+        }
+
+        /* Левая панель */
+        .sidebar {
+            width: 200px;
+            background-color: #f8f9fa;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            position: fixed;
+            padding-top: 10px;
+        }
+        .sidebar .active {
+            display: block;
+            padding: 12px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            background-color: #0d6efd;
+            width: 100%;
+            text-align: left;
+        }
+        .sidebar a {
+            display: block;
+            padding: 12px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: black;
+            text-decoration: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        /* Основной контент */
+        .content {
+            margin-left: 220px;
+            padding: 20px;
+        }
+
+        /* Вкладки (Users table / New User) */
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            font-size: 18px;
+            color: #0d6efd;
+        }
+        .nav-links .active-tab {
+            color: black;
+            font-weight: bold;
+        }
+
+        /* Центрирование формы */
+        .form-container {
+            width: 350px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Стилизация полей */
+        .form-label {
+            display: block;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .form-control {
+            height: 30px;
+            font-size: 14px;
+            text-align: center;
+        }
+        /* Желтый фон для выделенных полей */
+        .highlight {
+            background-color: #fff3cd !important;
+        }
+        /* Кнопка */
+        .btn-submit {
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            height: 40px;
+        }
+        .btn-submit:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Верхняя панель -->
+<div class="topbar">
+    <span th:text="${user.email} + ' with roles: ' + ${user.roles}"></span>
+    <a th:href="@{/logout}">Logout</a>
+</div>
+
+<!-- Левая панель -->
+<div class="sidebar">
+    <a href="#" class="active">Admin</a>
+    <a th:href="@{/user}">User</a>
+</div>
+
+<!-- Основной контент -->
+<div class="content">
+    <h2>Admin panel</h2>
+    <!-- Вкладки -->
+    <div class="nav-links">
+        <a th:href="@{/user}">Users table</a> <!-- Теперь ведет на user.html -->
+        <a href="#" class="active-tab">New User</a>
+    </div>
+
+    <!-- Заголовок "Add new user" -->
+    <h4>Add new user</h4>
+
+    <!-- Форма -->
+    <div class="form-container mt-3">
+        <form th:action="@{/admin/create}" method="post" th:object="${newUser}">
+            <div class="mb-2">
+                <label class="form-label">First name</label>
+                <input type="text" th:field="*{firstName}"
+                       class="form-control highlight" required/>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Last name</label>
+                <input type="text" th:field="*{lastName}"
+                       class="form-control highlight" required/>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Age</label>
+                <input type="number" th:field="*{age}"
+                       class="form-control" required/>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Email</label>
+                <input type="email" th:field="*{email}"
+                       class="form-control highlight" required/>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Password</label>
+                <input type="password" th:field="*{password}"
+                       class="form-control" required/>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Role</label>
+                <select th:field="*{roles}"
+                        class="form-select">
+                    <option th:each="role : ${allRoles}"
+                            th:value="${role.id}"
+                            th:text="${role.name}"></option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-submit mt-3">Add new user</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
