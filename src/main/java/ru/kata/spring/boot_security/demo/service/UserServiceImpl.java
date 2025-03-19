@@ -2,30 +2,30 @@ package ru.kata.spring.boot_security.demo.service;
 
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-
-    @Autowired
-    public UserServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void createUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
     @Override
     public User getUserById(Long id) {
-        Optional<User> optional = userRepository.findById(id);
-        return optional.orElse(null);
+        return userRepository.findById(id).orElse(null);
     }
 
     @Override
@@ -40,11 +40,32 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void updateUser(User user) {
-        userRepository.save(user);
+        User existingUser = userRepository.findById(user.getId()).orElse(null);
+        if (existingUser != null) {
+            if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+                user.setPassword(existingUser.getPassword());
+            } else {
+                if (!user.getPassword().startsWith("$2a$") && !user.getPassword().startsWith("$2b$")) {
+                    user.setPassword(passwordEncoder.encode(user.getPassword()));
+                }
+            }
+            userRepository.save(user);
+        }
     }
 
     @Override
     public User findByUsername(String username) {
         return userRepository.findByUsername(username).orElse(null);
     }
-}
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = findByUsername(username);
+        if(user == null){
+            throw new UsernameNotFoundException("User not found");
+        }
+        // Опционально: принудительно инициализируем коллекцию ролей
+        user.getRoles().size();
+        return user;
+    }
