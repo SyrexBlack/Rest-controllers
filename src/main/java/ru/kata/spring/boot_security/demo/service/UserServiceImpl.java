@@ -42,12 +42,15 @@ public class UserServiceImpl implements UserService {
     public void updateUser(User user) {
         User existingUser = userRepository.findById(user.getId()).orElse(null);
         if (existingUser != null) {
+            // Если с фронта пришёл пустой пароль, оставляем старый
             if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
                 user.setPassword(existingUser.getPassword());
+            } else if (!user.getPassword().equals(existingUser.getPassword())) {
+                // Если новый пароль отличается от хранимого (то есть пользователь его изменил), шифруем его
+                user.setPassword(passwordEncoder.encode(user.getPassword()));
             } else {
-                if (!user.getPassword().startsWith("$2a$") && !user.getPassword().startsWith("$2b$")) {
-                    user.setPassword(passwordEncoder.encode(user.getPassword()));
-                }
+                // Если пароль не изменился, оставляем старое значение
+                user.setPassword(existingUser.getPassword());
             }
             userRepository.save(user);
         }
@@ -62,10 +65,11 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = findByUsername(username);
-        if(user == null){
+        if (user == null) {
             throw new UsernameNotFoundException("User not found");
         }
         // Опционально: принудительно инициализируем коллекцию ролей
         user.getRoles().size();
         return user;
     }
+}
